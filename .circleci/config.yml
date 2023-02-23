@@ -1,0 +1,21 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: circleci/python:3.8
+    steps:
+      - checkout
+      - run: python -m venv venv
+      - run: source venv/bin/activate
+      - run: git clone https://github.com/ossillate-inc/packj
+      - run: pip install -r ./packj/requirements.txt
+      - run: python ./packj/main.py -f pypi:requirements.txt
+
+workflows:
+  build:
+    jobs:
+      - test:
+          filters:
+            branches:
+              only: main
