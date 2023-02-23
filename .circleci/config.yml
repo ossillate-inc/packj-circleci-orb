@@ -9,8 +9,9 @@ jobs:
       - run: python -m venv venv
       - run: source venv/bin/activate
       - run: git clone https://github.com/ossillate-inc/packj
+      - run: /usr/local/bin/python -m pip install --upgrade pip
       - run: pip install -r ./packj/requirements.txt
-      - run: python ./packj/main.py -f pypi:requirements.txt
+      - run: python ./packj/main.py audit -f pypi:requirements.txt
 
 workflows:
   build:
