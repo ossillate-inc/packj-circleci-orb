@@ -11,6 +11,7 @@ jobs:
       - run: git clone https://github.com/ossillate-inc/packj
       - run: /usr/local/bin/python -m pip install --upgrade pip
       - run: rm ./packj/.packj.yaml
+      - run: ls ./packj -al
       - run: pip install -r ./packj/requirements.txt
       - run: python ./packj/main.py audit -f pypi:requirements.txt
 
