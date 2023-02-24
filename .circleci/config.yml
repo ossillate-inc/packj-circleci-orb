@@ -6,7 +6,6 @@ jobs:
       - image: circleci/python:3.8
     steps:
       - checkout
-      - run: echo $DEPENDENCY_FILES
       - run: python -m venv venv
       - run: source venv/bin/activate
       - run: git clone https://github.com/ossillate-inc/packj
