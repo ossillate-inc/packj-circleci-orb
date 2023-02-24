@@ -16,19 +16,21 @@ jobs:
       - run:
           name: Audit dependency files with Packj
           command: |
-            input=$(echo $DEPENDENCY_FILES | sed 's/,/ /g') 
-            input_files=()
+            input=$(echo "npm:package.json,pypi:requirements.txt" | sed 's/,/ /g')                                                                                
+            input_files=()                                                                                                        
+
             for item in $input
-              do
-                if [[ $item == *":"* ]]; then
-                  pm_name=$(echo $item | cut -f1 -d:)
-                  dep_file=$(echo $item | cut -f2 -d:)
-                  input_files+=$pm_name":"$path,
-                fi
-              done
-            if [ ! -z input_files ]; then
-              input=$(echo $input_files | sed 's/,/ /g')
-              python ./packj/main.py audit -f $input 
+            do                                                                                                 
+                    if [[ $item == *":"* ]]; then                                                                                
+                            pm_name=$(echo $item | cut -f1 -d:)                                                                                
+                            dep_file=$(echo $item | cut -f2 -d:)                                                                                
+                            input_files+=$pm_name":"$dep_file,                                                                                
+                    fi                                                                                
+            done                                                                                
+                                                                                                            
+            if [ ! -z input_files ]; then                                                   
+                    input=$(echo $input_files | sed 's/,/ /g')                                                           
+                    python ./packj/main.py audit -f $input                                                                                   
             fi
     environment:
       DEPENDENCY_FILES: pypi:requirements.txt,npm:package.json
