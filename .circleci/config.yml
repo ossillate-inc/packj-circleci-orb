@@ -10,8 +10,6 @@ jobs:
       - run: source venv/bin/activate
       - run: git clone https://github.com/ossillate-inc/packj
       - run: /usr/local/bin/python -m pip install --upgrade pip
-      - run: rm ./packj/.packj.yaml
-      - run: ls ./packj -al
       - run: pip install -r ./packj/requirements.txt
       - run:
           name: Audit dependency files with Packj
@@ -33,7 +31,7 @@ jobs:
                     python ./packj/main.py audit -f $input                                                                                   
             fi
     environment:
-      DEPENDENCY_FILES: pypi:requirements.txt,npm:package.json
+      DEPENDENCY_FILES: pypi:requirements.txt,npm:package.json,rubygems:Gemfile
 
 workflows:
   build:
