@@ -32,7 +32,7 @@ jobs:
               python ./packj/main.py audit -f $input 
             fi
     environment:
-      DEPENDENCY_FILES: npm:package.json
+      DEPENDENCY_FILES: pypi:requirements.txt,npm:package.json
 
 workflows:
   build:
