@@ -14,7 +14,7 @@ jobs:
       - run:
           name: Audit dependency files with Packj
           command: |
-            input=$(echo "npm:package.json,pypi:requirements.txt" | sed 's/,/ /g')                                                                                
+            input=$(echo $DEPENDENCY_FILES | sed 's/,/ /g')                                                                                
             input_files=()                                                                                                        
 
             for item in $input
