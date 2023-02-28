@@ -1,3 +1,4 @@
+# Set $GH_USER and $GH_TOKEN as CircleCI Project Environment Variables
 version: 2.1
 
 jobs:
@@ -14,27 +15,56 @@ jobs:
       - run:
           name: Audit dependency files with Packj
           command: |
-            input=$(echo $DEPENDENCY_FILES | sed 's/,/ /g')                                                                                
-            input_files=()                                                                                                        
+            input=$(echo $DEPENDENCY_FILES | sed 's/,/ /g')
+            input_files=()
 
             for item in $input
-            do                                                                                                 
-                    if [[ $item == *":"* ]]; then                                                                                
-                            pm_name=$(echo $item | cut -f1 -d:)                                                                                
-                            dep_file=$(echo $item | cut -f2 -d:)                                                                                
-                            input_files+=$pm_name":"$dep_file,                                                                                
-                    fi                                                                                
-            done                                                                                
-                                                                                                            
-            if [ ! -z input_files ]; then                                                   
-                    input=$(echo $input_files | sed 's/,/ /g')                                                           
-                    python ./packj/main.py audit -f $input                                                                                   
+            do
+                    if [[ $item == *":"* ]]; then
+                            pm_name=$(echo $item | cut -f1 -d:)
+                            dep_file=$(echo $item | cut -f2 -d:)
+                            input_files+=$pm_name":"$dep_file,
+                    fi
+            done
+
+            if [ ! -z input_files ]; then
+                    input=$(echo $input_files | sed 's/,/ /g')
+                    python ./packj/main.py audit -f $input
+            fi
+      - run:
+          name: Comment on GitHub pull request
+          command: |
+            ls /tmp/packj_audit_*/*.html -al
+
+            if [ -f /tmp/packj_audit_*/*.html ]; then
+              html_report=$(ls /tmp/packj_audit_*/*.html)
+              cat $html_report |head -n -2 |tail -n +10 |sed 's/^[\s\t\r]*//g' > GITHUB_COMMENT.md
+            else
+              echo "<h4>Failed to perform Packj audit! Refer to workflow run for details</h4>" > GITHUB_COMMENT.md
+            fi
+
+            sudo apt-get install jq
+
+            # Install gh CLI    
+            curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+            && sudo apt update \
+            && sudo apt install gh -y
+
+            pr_response=$(curl --location --request GET "https://api.github.com/repos/$CIRCLE_PROJECT_USERNAME/$CIRCLE_PROJECT_REPONAME/pulls?base=$CIRCLE_BRANCH&state=open" -u $GH_USER:$GH_TOKEN)
+
+            if [ $(echo $pr_response |jq length) -eq 0 ]; then
+              echo "No PR found to update"
+            else
+              pr_number=$(echo $pr_response |jq -r ".[].number")
+              gh pr comment $pr_number --body-file GITHUB_COMMENT.md
             fi
     environment:
       DEPENDENCY_FILES: pypi:requirements.txt,npm:package.json,rubygems:Gemfile
 
 workflows:
-  build:
+  test:
     jobs:
       - packj-audit:
           filters:
